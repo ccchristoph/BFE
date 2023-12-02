@@ -3,6 +3,6 @@ Basis Function Estimator
 
 ## Co-Owners
 <!-- CONTRIBUTORS_LIST_START -->
-- [Username1](https://github.com/ccchristoph) - Clemens Christoph
-- [Username2](https://github.com/ArturoRoberti) - Arturo Roberti
+- [Clemens Christoph - ](https://github.com/ccchristoph)
+- [Arturo Roberti](https://github.com/ArturoRoberti)
 <!-- CONTRIBUTORS_LIST_END -->
