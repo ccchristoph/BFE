@@ -46,7 +46,13 @@ from sklearn.model_selection import train_test_split
 
 def plot_sample(X):
 
-    plt.plot(X)
+    num_samples = 100
+    start = -10
+    end = 10
+    step = (end - start)/100
+    eval_points = np.arange(start, end, step)
+
+    plt.plot(eval_points,X)
     plt.show()
 
 def generate_sample(f: func) -> (np.array, np.array):
@@ -140,7 +146,8 @@ model.fit(X_train, y_train, epochs=10, batch_size=32, steps_per_epoch=100)
 
 # Test the model on X_test
 # y_pred = model.predict(X_test)
-X_test, y_test = generate_samples([func("exp(3*x) sin(x)")], 20)
+X_test, y_test = generate_samples([func("exp(3*x) + sin(x)")], 20)
+plot_sample(X_test[0])
 y_pred = model.predict(X_test)
 
 print(y_pred)
