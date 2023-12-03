@@ -63,7 +63,8 @@ def generate_sample(f: func) -> (np.array, np.array):
         if basis_functions[i] == basis_function:
             y[i] = 1
 
-    mean = np.random.uniform(-0.1, 0.1, 1)
+    # mean = np.random.uniform(-0.1, 0.1, 1)
+    mean = 0
     std = np.random.uniform(0.1, 0.3, 1)
 
     num_samples = 100
@@ -105,40 +106,29 @@ def generate_samples(f_list: list[func], num_samples: int | list[int], shuffle: 
     return X_train, y_train
 
 
-basis_functions = ['x', 'sin(x)', 'exp(x)', 'cos(x)']
+basis_functions = ['0', 'x', 'x^2', 'x^3', 'sin(x)', 'exp(x)', 'cos(x)']
 f_list = []
 for f in basis_functions:
     f_list.append(func(f))
 
-X, y = generate_samples(f_list, 100)
+X, y = generate_samples(f_list, 1000)
 
 
 def vanilla_neural_network(input_shape, output_num):
     model = tf.keras.Sequential([
-        tf.keras.layers.Dense(32, activation='relu', input_shape=input_shape),
-        tf.keras.layers.Dense(16, activation='relu'),
+        tf.keras.layers.Dense(128, activation='relu', input_shape=input_shape),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(128, activation='relu'),
         tf.keras.layers.Dense(output_num, activation='softmax')
     ])
 
     return model
 
-print(np.shape(y)[1])
-print(np.shape(X[0]))
 model = vanilla_neural_network(np.shape(X[0]), np.shape(y)[1])
 
 
 # Perform train-test split
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-# print(np.shape(X_train))
-# print(np.shape(y_train))
-# print(type(X_train))
-# print(type(y_train))
-# print(X_train)
-# print(y_train)
-
-# a = np.array([[1, 2, 3], [4, 5, 6]])
-# print("type(a)", type(a))
 
 # Train the model using X_train_new
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -146,12 +136,14 @@ model.fit(X_train, y_train, epochs=10, batch_size=32, steps_per_epoch=100)
 
 # Test the model on X_test
 # y_pred = model.predict(X_test)
-f = func("sin(exp(x))")
+f = func("(x*0.2)^5 + 6*sin(x)")
 X_test, y_test = generate_samples([f], 20)
+f.plot(-100, 100)
+plot_sample(X_test[0])
+y_pred = model.predict(X_test)
 y_pred = model.predict(X_test)
 
-print(y_pred)
-f.plot(-100, 100)
+print(np.around(y_pred, 3))
 
 # Compare mean squared error of y_test and y_pred
 
