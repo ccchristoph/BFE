@@ -5,6 +5,7 @@
 # TODO: Find better name for value
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 class func():
     class Node():
@@ -48,6 +49,21 @@ class func():
     
     def print_layer(self, curr_node: Node):
         pass
+
+    def plot(self, start: float, end: float, num_points: int = None):
+        if num_points is None:
+            num_points = (end - start)*100
+
+        step = (end - start)/num_points
+        eval_points = np.arange(start, end, step)
+
+        X = []
+        for point in eval_points:
+            X.append(self.eval(point))
+
+        plt.plot(eval_points,X)
+        plt.show()
+
     
     def print_tree(self, curr_node: Node = []): # TODO: Add default root to derive fct
         tulo = True

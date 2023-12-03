@@ -146,11 +146,12 @@ model.fit(X_train, y_train, epochs=10, batch_size=32, steps_per_epoch=100)
 
 # Test the model on X_test
 # y_pred = model.predict(X_test)
-X_test, y_test = generate_samples([func("exp(3*x) + sin(x)")], 20)
-plot_sample(X_test[0])
+f = func("sin(exp(x))")
+X_test, y_test = generate_samples([f], 20)
 y_pred = model.predict(X_test)
 
 print(y_pred)
+f.plot(-100, 100)
 
 # Compare mean squared error of y_test and y_pred
 
@@ -162,4 +163,5 @@ for i in range(len(y_test)):
 print("Number of rows where max(y_test)[row] == max(y_pred[row]):", count)
 print("Number of rows where max(y_test)[row] != max(y_pred[row]):", len(y_test) - count)
 
+plot_sample(X_test[0])
 
