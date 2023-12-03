@@ -598,18 +598,18 @@ class func():
 # print("     __", 3, "__     ", sep="")
 # print("     | ", " ", " |     ", sep="")
 
-f = func("3+3*x")
-g = func("sin(x) + 2")
+# f = func("3+3*x")
+# g = func("sin(x) + 2")
 
-add = f + g
-print("add:")
-add.print_tree()
-sub = f - g
-print("sub:")
-sub.print_tree()
-mult = f*g
-print("mult:")
-mult.print_tree()
-pow = f**g
-print("pow:")
-pow.print_tree()
+# add = f + g
+# print("add:")
+# add.print_tree()
+# sub = f - g
+# print("sub:")
+# sub.print_tree()
+# mult = f*g
+# print("mult:")
+# mult.print_tree()
+# pow = f**g
+# print("pow:")
+# pow.print_tree()
