@@ -49,7 +49,7 @@ def plot_sample(X):
     num_samples = 100
     start = -10
     end = 10
-    step = (end - start)/100
+    step = (end - start)/num_samples
     eval_points = np.arange(start, end, step)
 
     plt.plot(eval_points,X)
@@ -106,12 +106,12 @@ def generate_samples(f_list: list[func], num_samples: int | list[int], shuffle: 
     return X_train, y_train
 
 
-basis_functions = ['0', 'x', 'x^2', 'x^3', 'sin(x)', 'exp(x)', 'cos(x)']
-f_list = []
-for f in basis_functions:
-    f_list.append(func(f))
+f_list = ['0', 'x', 'x^2', 'x^3', 'sin(x)', 'exp(x)', 'cos(x)']
+basis_functions = []
+for f in f_list:
+    basis_functions.append(func(f))
 
-X, y = generate_samples(f_list, 1000)
+X, y = generate_samples(basis_functions, 1000)
 
 
 def vanilla_neural_network(input_shape, output_num):
@@ -146,7 +146,6 @@ y_pred = model.predict(X_test)
 print(np.around(y_pred, 3))
 
 # Compare mean squared error of y_test and y_pred
-
 count = 0
 for i in range(len(y_test)):
     if np.argmax(y_test[i]) == np.argmax(y_pred[i]):
