@@ -3,6 +3,7 @@
 # TODO: Give each node attribute of type of operation instead of many lists. Also keep string attr (change decompose und derive fct)
 # TODO: save left_width and right_width in each node to save fun call
 # TODO: Find better name for value
+# TODO: If add with an empty function then handle this case
 
 import numpy as np
 import matplotlib.pyplot as plt
