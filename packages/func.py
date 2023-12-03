@@ -28,11 +28,42 @@ class func():
     def __add__(self, add_func):
         if isinstance(add_func, func):
             # Custom logic for addition of two instances of ExampleClass
-            print(self.root.value + add_func.root.value)
-            return func(self.root.value + "+" + add_func.root.value)
+            return func("(" + self.root.value + ")+(" + add_func.root.value + ")")
         else:
             # Handle other types or raise an exception if not supported
             raise ValueError("'+' is not supported for variables of type 'func' and", type(add_func))
+        
+    def __sub__(self, add_func):
+        if isinstance(add_func, func):
+            # Custom logic for addition of two instances of ExampleClass
+            return func("(" + self.root.value + ")-(" + add_func.root.value + ")")
+        else:
+            # Handle other types or raise an exception if not supported
+            raise ValueError("'-' is not supported for variables of type 'func' and", type(add_func))
+        
+    def __mult__(self, add_func):
+        if isinstance(add_func, func):
+            # Custom logic for addition of two instances of ExampleClass
+            return func("(" + self.root.value + ")*(" + add_func.root.value + ")")
+        else:
+            # Handle other types or raise an exception if not supported
+            raise ValueError("'*' is not supported for variables of type 'func' and", type(add_func))
+        
+    def __truediv__(self, add_func):
+        if isinstance(add_func, func):
+            # Custom logic for addition of two instances of ExampleClass
+            return func("(" + self.root.value + ")/(" + add_func.root.value + ")")
+        else:
+            # Handle other types or raise an exception if not supported
+            raise ValueError("'/' is not supported for variables of type 'func' and", type(add_func))
+        
+    def __pow__(self, add_func):
+        if isinstance(add_func, func):
+            # Custom logic for addition of two instances of ExampleClass
+            return func("(" + self.root.value + ")^(" + add_func.root.value + ")")
+        else:
+            # Handle other types or raise an exception if not supported
+            raise ValueError("'^' (resp. '**') is not supported for variables of type 'func' and", type(add_func))
 
     def get_value(self):
         return self.root.value
@@ -76,12 +107,13 @@ class func():
     
     def print_tree(self, curr_node: Node = []): # TODO: Add default root to derive fct # TODO: Make that no input node is necessary
         tulo = True
-        ccc = True
+        ccc = False
         try:
             curr_node.value
         except:
             curr_node = self.root
 
+        print(curr_node.value)
         tree_dict = self.tree_to_dict(curr_node)
         # print(tree_dict)
 
@@ -565,3 +597,19 @@ class func():
 
 # print("     __", 3, "__     ", sep="")
 # print("     | ", " ", " |     ", sep="")
+
+f = func("3+3*x")
+g = func("sin(x) + 2")
+
+add = f + g
+print("add:")
+add.print_tree()
+sub = f - g
+print("sub:")
+sub.print_tree()
+mult = f*g
+print("mult:")
+mult.print_tree()
+pow = f**g
+print("pow:")
+pow.print_tree()
