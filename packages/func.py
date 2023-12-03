@@ -25,6 +25,15 @@ class func():
         self.root = self.Node(self.clean_string(root_str), 0)
         self.decompose_func(self.root)
 
+    def __add__(self, add_func):
+        if isinstance(add_func, func):
+            # Custom logic for addition of two instances of ExampleClass
+            print(self.root.value + add_func.root.value)
+            return func(self.root.value + "+" + add_func.root.value)
+        else:
+            # Handle other types or raise an exception if not supported
+            raise ValueError("'+' is not supported for variables of type 'func' and", type(add_func))
+
     def get_value(self):
         return self.root.value
 
@@ -65,7 +74,7 @@ class func():
         plt.show()
 
     
-    def print_tree(self, curr_node: Node = []): # TODO: Add default root to derive fct
+    def print_tree(self, curr_node: Node = []): # TODO: Add default root to derive fct # TODO: Make that no input node is necessary
         tulo = True
         ccc = True
         try:
