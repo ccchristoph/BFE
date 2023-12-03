@@ -3,6 +3,7 @@
 # TODO: Give each node attribute of type of operation instead of many lists. Also keep string attr (change decompose und derive fct)
 # TODO: save left_width and right_width in each node to save fun call
 # TODO: Find better name for value
+# TODO: Add cheks in __add__ etc. that no empty func instances are added - or rather, that no empty funcs can be created in general
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -41,7 +42,7 @@ class func():
             # Handle other types or raise an exception if not supported
             raise ValueError("'-' is not supported for variables of type 'func' and", type(add_func))
         
-    def __mult__(self, add_func):
+    def __mul__(self, add_func):
         if isinstance(add_func, func):
             # Custom logic for addition of two instances of ExampleClass
             return func("(" + self.root.value + ")*(" + add_func.root.value + ")")
@@ -104,7 +105,6 @@ class func():
         plt.plot(eval_points,X)
         plt.show()
 
-    
     def print_tree(self, curr_node: Node = []): # TODO: Add default root to derive fct # TODO: Make that no input node is necessary
         tulo = True
         ccc = False
@@ -113,16 +113,14 @@ class func():
         except:
             curr_node = self.root
 
-        print(curr_node.value)
         tree_dict = self.tree_to_dict(curr_node)
-        # print(tree_dict)
 
         def create_depth_array(max_dep: dict) -> list[list]:
             elem_type = None
             depth_array = [[elem_type]]
             for dep in range(1, max_dep + 1):
                 depth_array.append([elem_type])
-                for elem in range(2**dep - 1):
+                for _ in range(2**dep - 1):
                     depth_array[dep].append(elem_type)
 
             return depth_array
@@ -242,11 +240,13 @@ class func():
                 print("\n", end="")
 
 
-    def tree_to_dict(self, curr_node: Node, ind: int = 0, tree_dict: dict = {}) -> dict:
-        if len(tree_dict) == 0:
+    def tree_to_dict(self, curr_node: Node, ind: int = 0, tree_dict_default: dict = {}) -> dict:
+        if len(tree_dict_default) == 0:
             first_call = True
+            tree_dict = {}
         else:
             first_call = False
+            tree_dict = tree_dict_default
         
         curr_depth = curr_node.depth
         try:
@@ -256,7 +256,7 @@ class func():
 
         if curr_node.left_child == None and curr_node.right_child == None:
             if not curr_node.operation == None:
-                print("Mr. Wasaki we gotta go out")
+                raise ValueError("Mr. Wasaki we gotta go out")
             return
         
         else:
