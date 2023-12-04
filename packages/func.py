@@ -5,6 +5,8 @@
 # TODO: Find better name for value
 # TODO: If add with an empty function then handle this case
 # TODO: Typing (enforce type)
+# TODO: f = func("x-x-x") -> x+(-1)*(x-x)s
+
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,6 +26,7 @@ class func():
         
         self.root = self.Node(self._clean_string(root_str), 0)
         self._decompose_func(self.root)
+        #self._simplify(self.root)
         self.size = self._find_max_depth()
 
     def __add__(self, add_func):
@@ -204,7 +207,7 @@ class func():
                 curr_row = ""
                 elem_width = (3 + 2*padding)*(2**(max_depth - depth))
                 for elem in depth_vec:
-                    if isinstance(elem, int):
+                    if isinstance(elem, int) or isinstance(elem, float):
                         curr_row += " "*elem_width#*elem
                     elif isinstance(elem, str):
                         elem_len = len(elem)
@@ -224,7 +227,7 @@ class func():
                             right_width = left_width + 1
                             curr_row += (" "*left_width + elem + " "*right_width)
                     else:
-                        print("Either I fly the big string, or I fly your integer")
+                        print(elem, " Either I fly the big string, or I fly your integer")
                 print(curr_row)
 
         print("\n\n\n", end="")
@@ -383,6 +386,53 @@ class func():
 
         return
         # TODO: Potenzausnahme 1 0 (oder allg 0^0 etc)
+
+    def _delete_subtree(self, curr_node: Node):
+
+        def _delete(curr_node: self.Node):
+            if self._is_node_decomposed(curr_node):
+                del curr_node
+                return
+                # TODO: Check if this really deletes the object
+            
+            _delete(curr_node.left_child)
+            _delete(curr_node.right_child)
+
+        _delete(curr_node)
+
+        curr_node.right_child = None
+        curr_node.left_child = None
+        curr_node.operation = None
+        
+
+        
+    def _simplify(self, curr_node: Node):
+        
+        if self._is_node_decomposed(curr_node):
+            return curr_node.value
+        
+        left = self._simplify(curr_node.left_child)
+        right = self._simplify(curr_node.right_child)
+
+        if curr_node.operation == '+':
+            try: 
+                _left = float(left)
+                _right = float(right)
+                curr_node.value = str(_left+_right)
+                
+                self._delete_subtree(curr_node)
+                return curr_node.value
+            except:
+                if left == right:
+                    curr_node.value = "(2*" + left + ")"
+                    self._delete_subtree(curr_node)
+                    self._decompose_func(curr_node)
+                    return curr_node.value
+
+            curr_node.value = left + "+" + right
+
+        
+        return curr_node.value
 
     def _clean_string(self, string: str) -> str:
         # TODO: 5x als 5*x lesen und x*x als x^2 etc.
@@ -603,9 +653,10 @@ class func():
             
                 
 
-# fancy_func = func("3*x + 2 + 4*x*cos(exp(x))")
-
-# print(fancy_func.get_size())
+f = func("x-x-x")
+f.print_tree()
+f._simplify(f.root)
+f.print_tree()
 # fancy_func.print_tree()
 
 # X = np.arange(-1,1, 0.1)
