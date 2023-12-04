@@ -653,10 +653,10 @@ class func():
             
                 
 
-f = func("x-x-x")
-f.print_tree()
-f._simplify(f.root)
-f.print_tree()
+# f = func("x-x-x")
+# f.print_tree()
+# f._simplify(f.root)
+# f.print_tree()
 # fancy_func.print_tree()
 
 # X = np.arange(-1,1, 0.1)
@@ -669,8 +669,10 @@ f.print_tree()
 
 # #test = func("exp(-cos(32.4*x))*sin(exp(x+5*x))*(-sin(x+3*x))")
 # # test = func("34 + cos(x^2)*exp(x^2 + cos(3*x*x*x*x))")
-# test = func("x + 3*x")
-# #test = func("(x^2*(3*cos(3*x)))+(x^2*(3*cos(3*x)))")
+test = func("(x + 3)*x*(cos(3*x))")
+print(test.derive(test.root))
+#test.print_tree()
+#test = func("(x^2*(3*cos(3*x)))+(x^2*(3*cos(3*x)))")
 # # test._decompose_func(test.root)
 # # print(test.derive(test.root))
 
