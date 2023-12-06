@@ -6,7 +6,7 @@
 # TODO: If add with an empty function then handle this case
 # TODO: Typing (enforce type)
 # TODO: f = func("x-x-x") -> x+(-1)*(x-x)s
-
+# TODO: Add cheks in __add__ etc. that no empty func instances are added - or rather, that no empty funcs can be created in general
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -45,7 +45,7 @@ class func():
             # Handle other types or raise an exception if not supported
             raise ValueError("'-' is not supported for variables of type 'func' and", type(add_func))
         
-    def __mult__(self, add_func):
+    def __mul__(self, add_func):
         if isinstance(add_func, func):
             # Custom logic for addition of two instances of ExampleClass
             return func("(" + self.root.value + ")*(" + add_func.root.value + ")")
@@ -88,7 +88,7 @@ class func():
 
         plt.plot(eval_points,X)
         plt.show()
-    
+
     def print_tree(self, curr_node: Node = []): # TODO: Add default root to derive fct # TODO: Make that no input node is necessary
         tulo = True
         ccc = False
@@ -151,7 +151,7 @@ class func():
             depth_array = [[elem_type]]
             for dep in range(1, max_dep + 1):
                 depth_array.append([elem_type])
-                for elem in range(2**dep - 1):
+                for _ in range(2**dep - 1):
                     depth_array[dep].append(elem_type)
 
             return depth_array
@@ -269,7 +269,7 @@ class func():
                         print(" "*(left_width - len(node)) + node + " "*(right_width - len(node)), end="")
             
                 print("\n", end="")
-                
+
     def _decompose_func(self, curr_node: Node):
 
         def add_children_operation_recursion(c_node: self.Node, left_child: self.Node, right_child: self.Node, operation: str):
