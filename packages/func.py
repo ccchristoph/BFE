@@ -68,6 +68,35 @@ class func():
 
     def get_value(self):
         return self.root.value
+    
+    def subs_x(self, var: str):
+        root_copy = ''
+        # Replace all x with var, as long as x is not surrounded solely by operators (+. -, ^, /, *) or brackets
+        for ch_ind, ch in enumerate(self.root.value):
+            if ch == 'x':
+                if len(self.root.value) == 1:
+                    root_copy += var
+                    continue
+                if ch_ind == 0:
+                    if self.root.value[ch_ind + 1] in ['+', '-', '*', '/', '^', '(']:
+                        root_copy += '(' + var + ')'
+                elif ch_ind == len(self.root.value) - 1:
+                    if self.root.value[ch_ind - 1] in ['+', '-', '*', '/', '^', ')']:
+                        root_copy += '(' + var + ')'
+                else:
+                    if self.root.value[ch_ind - 1] in ['+', '-', '*', '/', '^', '(', ')'] and self.root.value[ch_ind + 1] in ['+', '-', '*', '/', '^', '(', ')']:
+                        root_copy += '(' + var + ')'
+                    else:
+                        root_copy += ch
+                    
+
+            
+            else:
+                root_copy += ch
+
+        # print("root_copy", root_copy)
+        self.root.value = root_copy
+        self.decompose_func(self.root)
 
     def find_width_required(self, curr_node: Node) -> list:
         # Base case
@@ -105,11 +134,11 @@ class func():
         plt.plot(eval_points,X)
         plt.show()
 
-    def print_tree(self, curr_node: Node = []): # TODO: Add default root to derive fct # TODO: Make that no input node is necessary
+    def print_tree(self, curr_node_or: Node = []): # TODO: Add default root to derive fct # TODO: Make that no input node is necessary
         tulo = True
         ccc = False
         try:
-            curr_node.value
+            curr_node = self.Node(curr_node_or.value, curr_node_or.depth)
         except:
             curr_node = self.root
 
@@ -257,7 +286,10 @@ class func():
         if curr_node.left_child == None and curr_node.right_child == None:
             if not curr_node.operation == None:
                 raise ValueError("Mr. Wasaki we gotta go out")
-            return
+            if first_call:
+                return tree_dict
+            else:
+                return
         
         else:
             self.tree_to_dict(curr_node.right_child, 2*ind, tree_dict)
@@ -303,7 +335,7 @@ class func():
             '''
             if (ch == '+' or ch == '-') and n_bracket == 0:
                 left_child = self.Node(node_str[:ch_ind], node_depth + 1)
-                if ch == '-':
+                if ch == '-': # TODO: Fix -1 problem
                     right_child = self.Node('(-1)*(' + node_str[ch_ind + 1:] + ')', node_depth + 1) # TODO: Make sure new index+1 exist
                 else:
                     right_child = self.Node(node_str[ch_ind + 1:], node_depth + 1)
@@ -363,8 +395,7 @@ class func():
                 n_bracket -= 1
 
         if node_str[-1] != ")":
-            print("Somehow elementary fct check was called without a bracket at the end - should not happen")
-            raise(ValueError)
+            raise ValueError("Somehow elementary fct check was called without a bracket at the end - should not happen")
         n_bracket = 0
         elem_fct = ""
         arg = ""
