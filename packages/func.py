@@ -4,7 +4,7 @@
 # TODO: save left_width and right_width in each node to save fun call
 # TODO: Find better name for value
 # TODO: Add cheks in __add__ etc. that no empty func instances are added - or rather, that no empty funcs can be created in general
-
+# TODO: Add check that e.g. 3(*2) is not possible to is_valid function (3(+2) and 3(-2) should be counted(?) as 3*2 resp. 3*(-2) [currently counted as 'ch', but should be mult])
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -335,8 +335,24 @@ class func():
             '''
             if (ch == '+' or ch == '-') and n_bracket == 0:
                 left_child = self.Node(node_str[:ch_ind], node_depth + 1)
-                if ch == '-': # TODO: Fix -1 problem
-                    right_child = self.Node('(-1)*(' + node_str[ch_ind + 1:] + ')', node_depth + 1) # TODO: Make sure new index+1 exist
+                if ch == '-':
+                    n_neg_brackets = 0
+                    minus_valid = False
+                    for neg_ind, neg_ch in enumerate(node_str[ch_ind+1:]):
+                        if n_neg_brackets == 0 and (neg_ch == '+' or neg_ch == '-'):
+                            right_child = self.Node('(-1)*(' + node_str[ch_ind + 1:ch_ind + 1 + neg_ind] + ')' + node_str[ch_ind + 1 + neg_ind:], node_depth + 1)
+                            minus_valid = True
+                            break
+                        
+                        elif neg_ch == '(':
+                            n_neg_brackets += 1
+                        elif neg_ch == ')':
+                            n_neg_brackets -= 1
+                    if not minus_valid:
+                        if n_neg_brackets == 0:
+                            right_child = self.Node('(-1)*(' + node_str[ch_ind + 1:] + ')', node_depth + 1)
+                        else:
+                            raise ValueError("No 'end' to the negation was found - should not happen")
                 else:
                     right_child = self.Node(node_str[ch_ind + 1:], node_depth + 1)
 
@@ -629,7 +645,10 @@ class func():
 # print("     __", 3, "__     ", sep="")
 # print("     | ", " ", " |     ", sep="")
 
-# f = func("3+3*x")
+f = func("3-3*x+cos(x)")
+f.print_tree()
+print(f.root.right_child.left_child.right_child.operation)
+
 # g = func("sin(x) + 2")
 
 # add = f + g
