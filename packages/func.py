@@ -645,9 +645,9 @@ class func():
 # print("     __", 3, "__     ", sep="")
 # print("     | ", " ", " |     ", sep="")
 
-f = func("3-3*x+cos(x)")
-f.print_tree()
-print(f.root.right_child.left_child.right_child.operation)
+# f = func("3-3*x+cos(x)")
+# f.print_tree()
+# print(f.root.right_child.left_child.right_child.operation)
 
 # g = func("sin(x) + 2")
 
