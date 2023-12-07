@@ -1,3 +1,5 @@
+# TODO: Add more shifted training samples
+
 import sys
 sys.path.append('/home/arturo/OwnCode/co-repos/BFE/')
 
@@ -125,13 +127,20 @@ def generate_samples(num_samples: int | list[int], num_pts: float, fun_range: tu
 
 def plot_samples(X: np.array, y: np.array, fun_range: tuple[float, float]):
     basis_str = ['0', 'x', 'x^2', 'x^3', 'sin(x)', 'exp(x)']
-    n_fig = np.shape(X)[0]
+    if len(np.shape(X)) == 1:
+        single = True
+        n_fig = 1
+        l = len(X)
+    else:
+        single = False
+        n_fig = np.shape(X)[0]
+        l = np.shape(X)[1]
     N = 30
     n_fig_per = min(N, n_fig)
     n_rows = int(np.floor(np.sqrt(n_fig_per)))
     n_cols = int(np.ceil(n_fig_per / n_rows))
 
-    x_values = np.linspace(fun_range[0], fun_range[1], num=len(X[0]))
+    x_values = np.linspace(fun_range[0], fun_range[1], num=l)
 
     # Iterate over figures
     for figure in range(n_fig):
@@ -142,12 +151,19 @@ def plot_samples(X: np.array, y: np.array, fun_range: tuple[float, float]):
 
         # Plot the current array in a subplot
         ax = axes[figure % N]
-        ax.plot(x_values, X[figure])
+        if single:
+            ax.plot(x_values, X)
+        else:
+            ax.plot(x_values, X[figure])
         ax.set_xlim(fun_range)
 
-        y_curr = y[figure]
+        if single:
+            y_curr = y
+        else:
+            y_curr = y[figure]
+
         func_index = np.where(y_curr == 1)
-        if len(func_index) > 1:
+        if len(func_index[0]) > 1:
             raise ValueError("More than one function is set true in y during plotting")
 
         ax.set_title(basis_str[np.where(y_curr == 1)[0][0]])

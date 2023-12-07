@@ -1,12 +1,15 @@
+import sys
+sys.path.append('/home/arturo/OwnCode/co-repos/BFE/')
+
 # External imports
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-# import tensorflow as tf
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
 
 # Own imports
-from ..packages.func import func
+from packages.func import func
 
 '''
 Algorithm:
@@ -19,69 +22,119 @@ Algorithm:
 end) inverse normalization
 '''
 
-# Training data
-def generate_samples(f_or_list: list[func | str], num_samples: int | list[int], shift: float = 0, amplitude: float = 1, x_amp: float = 1, shuffle: bool = True) -> (np.array, np.array):
-    basis_functions = ['0', 'x', 'x^2', 'x^3', 'sin(x)', 'exp(x)']
+# a = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+# b = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+# print(np.vstack((a, b)))
+# print(np.hstack((a, b)))
+# print(np.column_stack((a, b)))
 
-    def generate_sample(f: func) -> (np.array, np.array):
-        basis_function = f.get_value()
-        y = np.zeros(len(basis_functions))
-        for i in range(len(y)):
-            if basis_functions[i] == basis_function:
-                y[i] = 1
+if True:
+    import tensorflow as tf
+    # Import model
+    model = tf.keras.models.load_model('Reg_ML_ItReg/model.keras') # Attention: When doing model.predict(), the input needs to be 2D (meaning for 1 array, it needs to be np.array([[...]]))
+    # y_pred = model.predict(np.array([np.sin(np.arange(0, 10, 0.1))]))
+    # print(y_pred[0]/np.max(y_pred[0]))
 
-        # mean = np.random.uniform(-0.1, 0.1, 1)
-        mean = 0
-        std = np.random.uniform(0.1, 0.3, 1)
+    # Example noisy sample - x^2 + sin(x) + noise
+    x = np.linspace(-10, 10, 100)
+    # y = (x-2.25)**2 + 5*np.sin(5*(x-2.25)) + np.random.normal(0, 0.15, len(x))
+    y = (x-0)**2 + 5*np.sin(5*(x-0)) + np.random.normal(0, 0.15, len(x))
 
-        num_pts = 100
-        start = -10
-        end = 10
-        step = (end - start)/100
-        eval_points = np.arange(start, end, step)
+    def plot_samples(X: np.array, y: np.array, fun_range: tuple[float, float]):
+        # TODO: Add check for y to be a np.array and not e.g. list
+        basis_str = ['0', 'x', 'x^2', 'x^3', 'sin(x)', 'exp(x)']
+        if len(np.shape(X)) == 1:
+            single = True
+            n_fig = 1
+            l = len(X)
+        else:
+            single = False
+            n_fig = np.shape(X)[0]
+            l = np.shape(X)[1]
+        N = 30
+        n_fig_per = min(N, n_fig)
+        n_rows = int(np.floor(np.sqrt(n_fig_per)))
+        n_cols = int(np.ceil(n_fig_per / n_rows))
 
-        X = np.array([])
-        for point in eval_points:
-            X = np.append(X, f.eval(point))
+        x_values = np.linspace(fun_range[0], fun_range[1], num=l)
 
-        noise = np.random.normal(mean, std, size=num_pts)
-        X = X + noise
+        # Iterate over figures
+        for figure in range(n_fig):
+            # Create a new figure every N subplots
+            if figure % N == 0:
+                fig, axes = plt.subplots(n_rows, n_cols)
+                axes = np.array(axes).flatten()
 
-        return X, y
-    
-    X_train = []
-    y_train = []
+            # Plot the current array in a subplot
+            ax = axes[figure % N]
+            if single:
+                ax.plot(x_values, X)
+            else:
+                ax.plot(x_values, X[figure])
+            ax.set_xlim(fun_range)
 
-    f_list = f_or_list.copy() # Add error statement if f_or_list is not a list
-    for f_ind, f in enumerate(f_list):
-        if isinstance(f, str):
-            f_list[f_ind] = func(f)
-        elif not isinstance(f, func):
-            raise TypeError("Functions passed in generate_samples must be of type func or str")
+            if single:
+                y_curr = y
+            else:
+                y_curr = y[figure]
 
-    if isinstance(num_samples, int):
-        num_samples = [num_samples] * len(f_list)
+            func_index = np.where(y_curr == 1)
+            print(func_index)
+            if len(func_index[0]) > 1:
+                raise ValueError("More than one function is set true in y during plotting")
 
-    for f_ind, f in enumerate(f_list):
-        curr_num = num_samples[f_ind]
-        for _ in range(curr_num):
-            X, y = generate_sample(f)
-            X_train.append(X)
-            y_train.append(y)
+            ax.set_title(basis_str[np.where(y_curr == 1)[0][0]])
 
-    X_train = np.array(X_train)
-    y_train = np.array(y_train)
+            # If the last subplot of the current figure, show and save it
+            if figure % N == N - 1 or figure == n_fig - 1:
+                plt.draw()
+                # Optionally, save the figure
+                # fig.savefig(f'figure_{figure // N + 1}.png')
 
-    print("shape of X_train: ", X_train.shape)
-    print("shape of y_train: ", y_train.shape)
+    # Algorithm
+    def BFE(sample: np.array, fun_range: tuple[float, float], depth: int, tolerance: float = 0.01): # Sampel 1D for now (TODO: make it work for 2D as well)
+        basis_str = ['0', 'x', 'x^2', 'x^3', 'sin(x)', 'exp(x)']
+        basis_functions = []
+        for f in basis_str:
+            basis_functions.append(func(f))
 
-    if shuffle:
-        idx = np.random.permutation(len(X_train))
-        return X_train[idx], y_train[idx]
+        inv_basis_str = ['0', '1/x', 'x^(1/2)', 'x^(1/3)', 'asin(x)', 'ln(x)'] # TODO: Instead of depth, go until function found is constant (add emergeny depth of e.g. 100)
+        inv_basis_functions = []
+        for f in basis_str:
+            # basis_functions.append(func(f)) # TODO: Expand func class with further functions (to have inverses)
+            pass
+        
+        def ML_estimate(sample: np.array) -> list[tuple[func, func]] | None:
+            y_pred = model.predict(np.array([sample]))[0] # TODO: make it work for 2D as well
+            print(np.around(y_pred/max(y_pred), 3))
+            poss_fun = np.array(basis_functions)[y_pred > 0.3]
+            if len(poss_fun) == 0:
+                raise ValueError("TODO: End recursion on this tree here")
+                return None
+            else:
+                return [poss_fun, poss_fun] # TODO: Replace second element with inverse
+            
+        def regression(sample: np.array, fun_range: tuple[float, float], f: func) -> np.array: # TODO: make it work for 2D as well
+            X_reg = np.column_stack((np.ones_like(sample), f.eval(np.linspace(fun_range[0], fun_range[1], len(sample)))))
+            y_reg = sample
+            reg = LinearRegression()
+            reg.fit(X_reg, y)
+            coefficients = reg.coef_
+            return coefficients
+            # return func(f'{coefficients[1]}*{f.root.value} + {coefficients[0]}')
+        
+        def transform_data(sample: np.array, coefficients: np.array, inverse: func) -> np.array: # TODO: make it work for 2D as well
+            return inverse.eval((sample - coefficients[0])/coefficients[1])
+            
+        est = ML_estimate(sample)
+        for f in est:
+            print(f.root.value)
+            coeffs = regression(sample, fun_range, f)
+            plot_samples(transform_data(sample, coeffs), np.array([0, 0, 1, 0, 0, 0]), (-10, 10))
+            # print(regression(sample, fun_range, f).root.value)
 
-    return X_train, y_train
+    BFE(y, (-10, 10), 1)
 
-print("Generating samples...")
-X_train, y_train = generate_samples([func('sin(x)')], 10)
-print("X_train: ", X_train)
-print("y_train: ", y_train)
+    # plot_samples(y, np.array([0, 0, 1, 0, 0, 0]), (-10, 10))
+
+    plt.show()
