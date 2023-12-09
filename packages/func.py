@@ -3,6 +3,9 @@
 # TODO: Give each node attribute of type of operation instead of many lists. Also keep string attr (change decompose und derive fct)
 # TODO: save left_width and right_width in each node to save fun call
 # TODO: Find better name for value
+# TODO: If add with an empty function then handle this case
+# TODO: Typing (enforce type)
+# TODO: f = func("x-x-x") -> x+(-1)*(x-x)s
 # TODO: Add cheks in __add__ etc. that no empty func instances are added - or rather, that no empty funcs can be created in general
 # TODO: Add check that e.g. 3(*2) is not possible to is_valid function (3(+2) and 3(-2) should be counted(?) as 3*2 resp. 3*(-2) [currently counted as 'ch', but should be mult])
 import numpy as np
@@ -16,15 +19,15 @@ class func():
             self.value = string
             self.depth = depth
             self.operation = None # TODO: Add a^x in general
-            # print("New node created with value:\t", self.value)
 
     def __init__(self, root_str: str):
-        if not self.is_funcstring_valid(root_str):
-            print("ERROR: Invalid function, biiiiiiiiiiiitch")
-            raise(ValueError)    
+        if not self._is_func_string_valid(root_str):
+            raise ValueError("The input function is not a valid mathematical expression")    
         
-        self.root = self.Node(self.clean_string(root_str), 0)
-        self.decompose_func(self.root)
+        self.root = self.Node(self._clean_string(root_str), 0)
+        self._decompose_func(self.root)
+        #self._simplify(self.root)
+        self.size = self._find_max_depth()
 
     def __add__(self, add_func):
         if isinstance(add_func, func):
@@ -98,35 +101,35 @@ class func():
         self.root.value = root_copy
         self.decompose_func(self.root)
 
-    def find_width_required(self, curr_node: Node) -> list:
-        # Base case
-        if curr_node.right_child == None and curr_node.left_child == None:
-            if not curr_node.operation == None:
-                print("Mayday mayday")
-            padding = 3
-            curr_value_length = len(curr_node.value)
-            if curr_value_length % 2 == 0:
-                return [curr_value_length/2 + padding, curr_value_length/2 + padding]
-            else:
-                return [curr_value_length//2 + padding, curr_value_length/2 + 1 + padding]
+    # def find_width_required(self, curr_node: Node) -> list:
+    #     # Base case
+    #     if curr_node.right_child == None and curr_node.left_child == None:
+    #         if not curr_node.operation == None:
+    #             print("Mayday mayday")
+    #         padding = 3
+    #         curr_value_length = len(curr_node.value)
+    #         if curr_value_length % 2 == 0:
+    #             return [curr_value_length/2 + padding, curr_value_length/2 + padding]
+    #         else:
+    #             return [curr_value_length//2 + padding, curr_value_length/2 + 1 + padding]
 
-        left_child = curr_node.left_child
-        right_child = curr_node.right_child
+    #     left_child = curr_node.left_child
+    #     right_child = curr_node.right_child
         
-        left_width = self.find_width_required(left_child)[0] + self.find_width_required(left_child)[1]
-        right_width = self.find_width_required(right_child)[0] + self.find_width_required(right_child)[1]
-        return [left_width, right_width]
+    #     left_width = self.find_width_required(left_child)[0] + self.find_width_required(left_child)[1]
+    #     right_width = self.find_width_required(right_child)[0] + self.find_width_required(right_child)[1]
+    #     return [left_width, right_width]
     
-    def print_layer(self, curr_node: Node):
-        pass
+    def get_size(self):
+        return self.size
 
-    def plot(self, start: float, end: float, num_points: int = None):
+    def plot_func(self, start: float = -10, end: float = 10, num_points: int = None):
+
         if num_points is None:
             num_points = (end - start)*100
 
         step = (end - start)/num_points
         eval_points = np.arange(start, end, step)
-
         X = []
         for point in eval_points:
             X.append(self.eval(point))
@@ -142,7 +145,54 @@ class func():
         except:
             curr_node = self.root
 
-        tree_dict = self.tree_to_dict(curr_node)
+        def tree_to_dict(curr_node: self.Node, ind: int = 0, tree_dict: dict = {}) -> dict:
+            if len(tree_dict) == 0:
+                first_call = True
+            else:
+                first_call = False
+            
+            curr_depth = curr_node.depth
+            try:
+                tree_dict[curr_depth].append([curr_node, ind])
+            except:
+                tree_dict[curr_depth] = [[curr_node, ind]]
+
+            if curr_node.left_child == None and curr_node.right_child == None:
+                if not curr_node.operation == None:
+                    print("Mr. Wasaki we gotta go out")
+                return
+            
+            else:
+                tree_to_dict(curr_node.right_child, 2*ind, tree_dict)
+                tree_to_dict(curr_node.left_child, 2*ind + 1, tree_dict)
+
+                if first_call:
+                    return tree_dict
+                else:
+                    return
+
+        def find_width_required(curr_node: self.Node) -> list:
+            # Base case
+            if curr_node.right_child == None and curr_node.left_child == None:
+                if not curr_node.operation == None:
+                    print("Mayday mayday")
+                padding = 3
+                curr_value_length = len(curr_node.value)
+                if curr_value_length % 2 == 0:
+                    return [curr_value_length/2 + padding, curr_value_length/2 + padding]
+                else:
+                    return [curr_value_length//2 + padding, curr_value_length/2 + 1 + padding]
+
+            left_child = curr_node.left_child
+            right_child = curr_node.right_child
+            
+            left_width = find_width_required(left_child)[0] + find_width_required(left_child)[1]
+            right_width = find_width_required(right_child)[0] + find_width_required(right_child)[1]
+            return [left_width, right_width]
+
+        #print(curr_node.value)
+        tree_dict = tree_to_dict(curr_node)
+        # print(tree_dict)
 
         def create_depth_array(max_dep: dict) -> list[list]:
             elem_type = None
@@ -160,9 +210,9 @@ class func():
         # print("Depth array before:\n", depth_array)
         for depth in tree_dict:
             for node, node_ind in tree_dict[depth]:
-                # width = self.find_width_required(node)
+                # width = find_width_required(node)
                 depth_array[depth][node_ind] = node.value
-                if self.is_node_decomposed(node):
+                if self._is_node_decomposed(node):
                     pass # Change first "below" values to length of curr node, all other below arguments to "0"
 
         def fill_depth_array(depth: int, index: int, prev_value, curr_node: func.Node): # TODO: More efficient, no zeros (append instead of list beforehand)
@@ -205,11 +255,11 @@ class func():
                 curr_row = ""
                 elem_width = (3 + 2*padding)*(2**(max_depth - depth))
                 for elem in depth_vec:
-                    if isinstance(elem, int):
+                    if isinstance(elem, int) or isinstance(elem, float):
                         curr_row += " "*elem_width#*elem
                     elif isinstance(elem, str):
                         elem_len = len(elem)
-                        # width = self.find_width_required(node)
+                        # width = find_width_required(node)
                         # left_width = width[0]
                         # right_width = width[1]
                         # print("width", width)
@@ -225,7 +275,7 @@ class func():
                             right_width = left_width + 1
                             curr_row += (" "*left_width + elem + " "*right_width)
                     else:
-                        print("Either I fly the big string, or I fly your integer")
+                        print(elem, " Either I fly the big string, or I fly your integer")
                 print(curr_row)
 
         print("\n\n\n", end="")
@@ -268,51 +318,19 @@ class func():
             
                 print("\n", end="")
 
-
-    def tree_to_dict(self, curr_node: Node, ind: int = 0, tree_dict_default: dict = {}) -> dict:
-        if len(tree_dict_default) == 0:
-            first_call = True
-            tree_dict = {}
-        else:
-            first_call = False
-            tree_dict = tree_dict_default
-        
-        curr_depth = curr_node.depth
-        try:
-            tree_dict[curr_depth].append([curr_node, ind])
-        except:
-            tree_dict[curr_depth] = [[curr_node, ind]]
-
-        if curr_node.left_child == None and curr_node.right_child == None:
-            if not curr_node.operation == None:
-                raise ValueError("Mr. Wasaki we gotta go out")
-            if first_call:
-                return tree_dict
-            else:
-                return
-        
-        else:
-            self.tree_to_dict(curr_node.right_child, 2*ind, tree_dict)
-            self.tree_to_dict(curr_node.left_child, 2*ind + 1, tree_dict)
-
-            if first_call:
-                return tree_dict
-            else:
-                return
-
-    def decompose_func(self, curr_node: Node):
+    def _decompose_func(self, curr_node: Node):
 
         def add_children_operation_recursion(c_node: self.Node, left_child: self.Node, right_child: self.Node, operation: str):
-            self.decompose_func(left_child)
+            self._decompose_func(left_child)
             c_node.left_child = left_child
-            self.decompose_func(right_child)
+            self._decompose_func(right_child)
             c_node.right_child = right_child
             c_node.operation = operation
 
         node_str = curr_node.value
         node_depth = curr_node.depth
 
-        if self.is_node_decomposed(curr_node):
+        if self._is_node_decomposed(curr_node):
             return
 
         # TODO: Add check for empty node list, or '()' list
@@ -323,9 +341,9 @@ class func():
         # TODO: Check e.g. 3^2 is a const (should be done)
         # TODO: Multiplikation und Division trennen, 1/x*x
 
-        if node_str[0] == '(' and node_str[-1] == ')' and self.is_funcstring_valid(node_str[1:-1]):
+        if node_str[0] == '(' and node_str[-1] == ')' and self._is_func_string_valid(node_str[1:-1]):
             curr_node.value = node_str[1:-1]
-            self.decompose_func(curr_node)
+            self._decompose_func(curr_node)
             return
 
         n_bracket = 0
@@ -411,7 +429,9 @@ class func():
                 n_bracket -= 1
 
         if node_str[-1] != ")":
-            raise ValueError("Somehow elementary fct check was called without a bracket at the end - should not happen")
+            print("Somehow elementary fct check was called without a bracket at the end - should not happen")
+            raise(ValueError)
+        
         n_bracket = 0
         elem_fct = ""
         arg = ""
@@ -429,16 +449,57 @@ class func():
         add_children_operation_recursion(curr_node, left_child, right_child, "ch")
 
         return
-
         # TODO: Potenzausnahme 1 0 (oder allg 0^0 etc)
 
-    def check_elemental(curr_node: Node):
-        return
+    def _delete_subtree(self, curr_node: Node):
 
-    def clean_string(self, string: str) -> str:
+        def _delete(curr_node: self.Node):
+            if self._is_node_decomposed(curr_node):
+                del curr_node
+                return
+                # TODO: Check if this really deletes the object
+            
+            _delete(curr_node.left_child)
+            _delete(curr_node.right_child)
 
+        _delete(curr_node)
+
+        curr_node.right_child = None
+        curr_node.left_child = None
+        curr_node.operation = None
+        
+
+        
+    def _simplify(self, curr_node: Node):
+        
+        if self._is_node_decomposed(curr_node):
+            return curr_node.value
+        
+        left = self._simplify(curr_node.left_child)
+        right = self._simplify(curr_node.right_child)
+
+        if curr_node.operation == '+':
+            try: 
+                _left = float(left)
+                _right = float(right)
+                curr_node.value = str(_left+_right)
+                
+                self._delete_subtree(curr_node)
+                return curr_node.value
+            except:
+                if left == right:
+                    curr_node.value = "(2*" + left + ")"
+                    self._delete_subtree(curr_node)
+                    self._decompose_func(curr_node)
+                    return curr_node.value
+
+            curr_node.value = left + "+" + right
+
+        
+        return curr_node.value
+
+    def _clean_string(self, string: str) -> str:
         # TODO: 5x als 5*x lesen und x*x als x^2 etc.
-
         string_copy = ""
         for ch_ind, ch in enumerate(string):
             if ch == " ":
@@ -451,9 +512,9 @@ class func():
         if string == string_copy:
             return string_copy
         else:
-            return self.clean_string(string_copy)
+            return self._clean_string(string_copy)
         
-    def is_funcstring_valid(self, node_str: str):
+    def _is_func_string_valid(self, node_str: str):
         # Brackets
         brackets = 0
         for ch in node_str:
@@ -469,7 +530,7 @@ class func():
         # TODO +- am ende oder so
         return False
 
-    def is_node_decomposed(self, curr_node: Node):
+    def _is_node_decomposed(self, curr_node: Node):
         node_str = curr_node.value
         try:
             float(node_str)
@@ -488,9 +549,24 @@ class func():
         except:
             return False
 
+    def _find_max_depth(self, curr_node: Node = []) -> int:
+
+        try:
+            curr_node.value
+        except:
+            curr_node = self.root
+
+        if self._is_node_decomposed(curr_node):
+            return 1
+        
+        left_size = self._find_max_depth(curr_node.left_child) + 1
+        right_size = self._find_max_depth(curr_node.right_child) + 1
+
+        return max(left_size, right_size)
+
     def derive(self, curr_node: Node):
 
-        if self.is_node_decomposed(curr_node):
+        if self._is_node_decomposed(curr_node):
             element_value = curr_node.value
             try:
                 float(element_value)
@@ -507,7 +583,6 @@ class func():
                         return "1"
                     case _:
                         print("We have a problem fellas ", element_value)
-
         
         """
         1. Addition
@@ -549,9 +624,11 @@ class func():
                 return left_factor
             return str("(" + left_factor + "+" + right_factor + ")")
         
+        # TODO: Implement Division
         """
         3. Exponentiation
         """
+        # TODO: Implement
         if curr_node.operation == "^":
             pass
 
@@ -568,14 +645,44 @@ class func():
             
             return str(derivative + "(" + curr_node.right_child.value +  ")*(" + arg_derivative + ")")
 
-
-
         pass
 
-    def eval(self, point: float):
-        return self.eval_node(self.root, point)
+    def eval(self, point = None, start: float = None, end: float = None, num_points: int = None):
+        if point is not None:
+            try: 
+                point[0]
+                try:
+                    X = []
+                    for p in point:
+                        X.append(self._eval_node(self.root, p))
+                    return np.array(X)
+                except:
+                    # _eval_node already raises the error
+                    pass
+            except:
+                return self._eval_node(self.root, point)
+            
+        else:
+            if point is not None or start is None or end is None or start >= end:
+                raise TypeError("point should not be specified or end and start are not specified or start > end")
+            if num_points is None or num_points == 0:
+                num_points = (end - start)*100
 
-    def eval_node(self, curr_node: Node, point: float):
+        step = (end - start)/num_points
+        eval_points = np.arange(start, end, step)
+
+        X = []
+        for point in eval_points:
+            X.append(self._eval_node(self.root, point))
+
+        return X
+
+    def _eval_node(self, curr_node: Node, point: float):
+        try:
+            point = float(point)
+        except:
+            raise TypeError("The evaluation failed, because the argument is not a number")
+
         if curr_node.left_child == None and curr_node.right_child == None:
             if curr_node.value == 'x':
                 return point
@@ -584,46 +691,53 @@ class func():
                     val = float(curr_node.value)
                     return val
                 except:
-                    print("CCC dumbbbbbbbbbbb (but so nice though)")
-                    return
+                    self.print_tree()
+                    raise TypeError("The evaluation failed, the tree contains an error")
+
                 
         if curr_node.operation == '+':
-            return self.eval_node(curr_node.left_child, point) + self.eval_node(curr_node.right_child, point)
+            return self._eval_node(curr_node.left_child, point) + self._eval_node(curr_node.right_child, point)
         
         if curr_node.operation == '*':
-            return self.eval_node(curr_node.left_child, point) * self.eval_node(curr_node.right_child, point)
+            return self._eval_node(curr_node.left_child, point) * self._eval_node(curr_node.right_child, point)
 
         if curr_node.operation == '/':
-            return self.eval_node(curr_node.left_child, point) / self.eval_node(curr_node.right_child, point)
+            return self._eval_node(curr_node.left_child, point) / self._eval_node(curr_node.right_child, point)
         
         if curr_node.operation == '^':
-            return self.eval_node(curr_node.left_child, point) ** self.eval_node(curr_node.right_child, point)
+            return self._eval_node(curr_node.left_child, point) ** self._eval_node(curr_node.right_child, point)
                 
         if curr_node.operation == "ch":
             if curr_node.left_child.value == "cos":
-                return np.cos(self.eval_node(curr_node.right_child, point))
+                return np.cos(self._eval_node(curr_node.right_child, point))
             if curr_node.left_child.value == "sin":
-                return np.sin(self.eval_node(curr_node.right_child, point))
+                return np.sin(self._eval_node(curr_node.right_child, point))
             if curr_node.left_child.value == "exp":
-                return np.exp(self.eval_node(curr_node.right_child, point))
+                return np.exp(self._eval_node(curr_node.right_child, point))
             
                 
-        
+
+# f = func("x-x-x")
+# f.print_tree()
+# f._simplify(f.root)
+# f.print_tree()
+# fancy_func.print_tree()
+
+# X = np.arange(-1,1, 0.1)
+# print(X)
+# print(type(X))
 
 
-        
 
-
-
-
-#test = func("-1-(2*(3*4)^5 + 6*cos(-7*x))^8")
 #test = func("3*cos(5*x)^2 + (6*4)")
 
 # #test = func("exp(-cos(32.4*x))*sin(exp(x+5*x))*(-sin(x+3*x))")
 # # test = func("34 + cos(x^2)*exp(x^2 + cos(3*x*x*x*x))")
-# test = func("x + 3*x")
-# #test = func("(x^2*(3*cos(3*x)))+(x^2*(3*cos(3*x)))")
-# # test.decompose_func(test.root)
+test = func("(x + 3)*x*(cos(3*x))")
+print(test.derive(test.root))
+#test.print_tree()
+#test = func("(x^2*(3*cos(3*x)))+(x^2*(3*cos(3*x)))")
+# # test._decompose_func(test.root)
 # # print(test.derive(test.root))
 
 # # print(test)
