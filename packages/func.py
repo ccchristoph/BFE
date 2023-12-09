@@ -17,6 +17,7 @@ class func():
             self.left_child = None
             self.right_child = None
             self.value = string
+            self.key = None
             self.depth = depth
             self.operation = None # TODO: Add a^x in general
 
@@ -91,34 +92,13 @@ class func():
                         root_copy += '(' + var + ')'
                     else:
                         root_copy += ch
-                    
-
-            
+                     
             else:
                 root_copy += ch
 
         # print("root_copy", root_copy)
         self.root.value = root_copy
         self.decompose_func(self.root)
-
-    # def find_width_required(self, curr_node: Node) -> list:
-    #     # Base case
-    #     if curr_node.right_child == None and curr_node.left_child == None:
-    #         if not curr_node.operation == None:
-    #             print("Mayday mayday")
-    #         padding = 3
-    #         curr_value_length = len(curr_node.value)
-    #         if curr_value_length % 2 == 0:
-    #             return [curr_value_length/2 + padding, curr_value_length/2 + padding]
-    #         else:
-    #             return [curr_value_length//2 + padding, curr_value_length/2 + 1 + padding]
-
-    #     left_child = curr_node.left_child
-    #     right_child = curr_node.right_child
-        
-    #     left_width = self.find_width_required(left_child)[0] + self.find_width_required(left_child)[1]
-    #     right_width = self.find_width_required(right_child)[0] + self.find_width_required(right_child)[1]
-    #     return [left_width, right_width]
     
     def get_size(self):
         return self.size
@@ -717,8 +697,8 @@ class func():
 
 # #test = func("exp(-cos(32.4*x))*sin(exp(x+5*x))*(-sin(x+3*x))")
 # # test = func("34 + cos(x^2)*exp(x^2 + cos(3*x*x*x*x))")
-test = func("(x + 3)*x*(cos(3*x))")
-print(test.derive(test.root))
+test = func("(x + 3)*cos(3*x)")
+test.print_tree()
 #test.print_tree()
 #test = func("(x^2*(3*cos(3*x)))+(x^2*(3*cos(3*x)))")
 # # test._decompose_func(test.root)
